@@ -1,25 +1,17 @@
-from flask import Flask, request
+from flask import Flask, session, g, request
+from exts import db, mail
+from flask_migrate import Migrate
+from blueprints.general_user import bp as g_bp
 import config
-import json
 
 app = Flask(__name__)
-
 app.config.from_object(config)
+db.init_app(app)
+mail.init_app(app)
+migrate = Migrate(app, db)
 
-
-#api接口前缀
-apiPrefix = '/api/v1/'
-
-
-@app.route(apiPrefix + 'updateStaff', methods=['POST'])
-def updateStaff():
-    data = request.get_data(as_text=True)
-    # re = DBUtil.addOrUpdateStaff(data)
-    # if re['code'] >= 0: # 数据保存成功，移动附件
-    #     FileUtil.fileMoveDir(re['id'])
-    re ={"code":0}
-    return json.dumps(re)
-    # return 'Hello World!'
+app.register_blueprint(g_bp)
+# app.register_blueprint(user_bp)
 
 
 @app.route('/')
