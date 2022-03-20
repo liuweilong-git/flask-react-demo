@@ -1,16 +1,9 @@
-from flask import Blueprint, request, g, Response
+from flask import Blueprint, request, Response
 from db_operate.card_db.datacheck import CardDateService
+from common.methods import request_parse
 import json
 
-bp = Blueprint("user", __name__, url_prefix="/api/v1/")
-
-
-def request_parse(req_data):
-    if req_data.method == 'POST':
-        data = req_data.json
-    elif req_data.method == 'GET':
-        data = req_data.args
-    return data
+bp = Blueprint("general", __name__, url_prefix="/api/v1/")
 
 
 @bp.route('updateStaff', methods=['POST'])
@@ -41,3 +34,17 @@ def get_staff_list():
     card_list = CardDateService.select_card(card_id)
     json_staffs = CardDateService.format_card_resp(card_list)
     return Response(json.dumps(json_staffs))
+
+
+@bp.route("searchStaff_3")
+def search_staff_3():
+    data = request_parse(request)
+    condition = data.get('where')
+    condition = json.loads(condition)
+    if condition:
+        # 有条件才支持查询。本来想实现有查询条件才可以模糊查询，但是由于前端没有数据模糊查询也有where字段，所以这么判断不行
+        array = CardDateService.select_card_like(condition)  # 这里是返回了一条数据而前端只需要其中3个字段
+        json_staffs = CardDateService.get_staffs_from_data_3(array)  # 把需要的字段取出来放在一个列表里面
+        return Response(json.dumps(json_staffs))
+    else:
+        return json.dumps(None)
