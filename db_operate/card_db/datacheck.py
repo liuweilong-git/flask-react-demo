@@ -8,13 +8,19 @@ class CardDateService(object):
 
     @staticmethod
     def save_card(card_dto):
-        card = CardModel()
-        CardDateService._update_card(card, card_dto)
-        db.session.add(card)
+        """保存或者更新卡片，第一次的话没有id这个参数，修改的话有id这个参数"""
+        if card_dto.get("id"):
+            old_card_info = CardModel.query.filter_by(id=card_dto.get("id")).first()
+            CardDateService._update_card(old_card_info, card_dto)
+            db.session.add(old_card_info)
+        else:
+            card = CardModel()
+            CardDateService._update_card(card, card_dto)
+            db.session.add(card)
         try:
             db.session.commit()
         except Exception as ex:
-            r = check(not ex, u'插入卡片有误')
+            r = check(not ex, u'保存卡片有误')
             return r
 
     @staticmethod
